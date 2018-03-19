@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 before(async () => {
     try {
       // We are using a database only for testing purposes
+      console.log(config.database.uri);
       await mongoose.connect(config.database.uri);
       console.log('Connected to MongoDB!');
     }
