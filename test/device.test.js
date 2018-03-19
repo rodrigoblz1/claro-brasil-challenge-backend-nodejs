@@ -1,7 +1,7 @@
 const assert = require('assert');
 const should = require('should');
 
-const {DeviceJoiSchema, DeviceModel} = require('../../models/Device');
+const {DeviceJoiSchema, DeviceModel} = require('../models/Device');
 
 
 describe('Saving devices', () => {

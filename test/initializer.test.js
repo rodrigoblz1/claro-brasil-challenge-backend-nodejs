@@ -25,3 +25,7 @@ beforeEach(async () => {
     console.log('Dropping collection error: ', error);
   } 
 });
+
+after(async () => {
+  mongoose.connection.close();
+});
