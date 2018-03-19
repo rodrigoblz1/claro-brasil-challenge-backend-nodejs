@@ -3,12 +3,13 @@ const joi = require('joi');
 const joigoose = require('joigoose')(mongoose);
 
 // Allowed OS values for 'model'
-const MODELS = ['Android', 'iOS'];
+// It must be a REGEX because joi's force uppercase only proccess after the expressions
+const MODELS = /^ANDROID|IOS$/;
 
 const DeviceJoiSchema = joi.object().keys({
   user_id: joi.string().required(),
   name: joi.string().required(),
-  model: joi.string().valid(MODELS).required(),
+  model: joi.string().uppercase({ force: true }).regex(/^ANDROID|IOS$/).required(),
   date_added: joi.date()
 })
 
