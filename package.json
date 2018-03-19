@@ -1,0 +1,25 @@
+{
+  "name": "challenge-backend-nodejs",
+  "version": "1.0.0",
+  "description": "Claro BR Api challenge",
+  "main": "server.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rodrigoblz1/claro-brasil-challenge-backend-nodejs.git"
+  },
+  "author": "Rodrigo Bruno Mendes Theophilo",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rodrigoblz1/claro-brasil-challenge-backend-nodejs/issues"
+  },
+  "homepage": "https://github.com/rodrigoblz1/claro-brasil-challenge-backend-nodejs#readme",
+  "dependencies": {
+    "dotenv": "^5.0.1",
+    "express": "^4.16.3",
+    "mongoose": "^5.0.10",
+    "winston": "^3.0.0-rc3"
+  }
+}
