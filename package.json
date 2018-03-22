@@ -21,6 +21,7 @@
     "dotenv": "^5.0.1",
     "express": "^4.16.3",
     "joi": "^13.1.2",
+    "joi-objectid": "^2.0.0",
     "joigoose": "^4.0.0",
     "mongoose": "^5.0.10",
     "winston": "^3.0.0-rc3"

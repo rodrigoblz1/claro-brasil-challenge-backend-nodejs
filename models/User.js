@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 let Schema = mongoose.Schema;
 
 let UserSchema = new Schema({
-  id: Number,
+  id: String,
   last_exchange: Date,
   total_registered: {
     type: Number,

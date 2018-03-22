@@ -1,17 +1,19 @@
 'use strict';
 
-const User = require('../models/User');
+const router = require('express').Router();
 
-module.exports.getUserById = async (userId) => {
-  // Mocked part: The system approuch needs a user stored to manage the device exchange dates
-  // So we create one if it doesn't exist
+const { DeviceModel } = require('../models/Device');
+
+router.get('/:userId/devices/', async (req, res) => {
   try {
-    let user = await User.findOne({id: userId});
-    if (!user) {
-      user = await new User({id: userId}).save();
-    }
-    return user;
+    let devices = await DeviceModel.find({userId: req.params.userId});
+    res.status(200).send(devices);
   } catch (error) {
-    throw error;
+    return res.status(500).json({
+      type: 'Server Error',
+      message: 'Try again another time'
+    });
   }
-}
+});
+
+module.exports = router;
