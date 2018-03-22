@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/rodrigoblz1/claro-brasil-challenge-backend-nodejs#readme",
   "dependencies": {
+    "body-parser": "^1.18.2",
     "dotenv": "^5.0.1",
     "express": "^4.16.3",
     "joi": "^13.1.2",

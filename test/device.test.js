@@ -7,13 +7,13 @@ const {DeviceJoiSchema, DeviceModel} = require('../models/Device');
 describe('Saving devices', () => {
   it('Saves a device to the database', async () => {
     let newDevice = {
-      user_id: '123',
+      userId: '123',
       name: 'iPhone de Rodrigo',
       model: 'iOS',
       date_added: new Date()
     };
-    let joiDevice = await DeviceJoiSchema.validate(newDevice);
-    let device = new DeviceModel(joiDevice);
+    let deviceJoi = await DeviceJoiSchema.validate(newDevice);
+    let device = new DeviceModel(deviceJoi);
 
     // Saves the device
     await device.save();
