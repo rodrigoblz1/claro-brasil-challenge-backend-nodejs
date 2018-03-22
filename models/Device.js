@@ -18,7 +18,7 @@ let DeviceJoiSchema = joi.object().keys({
 })
 
 // Used for device update
-let DevicePutNameSchema = joi.object().keys({
+let DeviceIdNameSchema = joi.object().keys({
   id: joi.objectId().label('Invalid objectId'),
   name: name
 })
@@ -28,4 +28,4 @@ let DeviceMongooseSchema = new mongoose.Schema(joigoose.convert(DeviceJoiSchema)
 let DeviceModel = mongoose.model('Device', DeviceMongooseSchema);
 
 // Exporting the mongoose model and joi schema
-module.exports = { DeviceModel, DeviceJoiSchema, DevicePutNameSchema }
+module.exports = { DeviceModel, DeviceJoiSchema, DeviceIdNameSchema }

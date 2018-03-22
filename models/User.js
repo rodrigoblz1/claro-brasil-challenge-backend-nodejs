@@ -5,7 +5,11 @@ let Schema = mongoose.Schema;
 let UserSchema = new Schema({
   id: String,
   last_exchange: Date,
-  total_registered: {
+  total_devices_registered: {
+    type: Number,
+    default: 0
+  },
+  current_devices_amount: {
     type: Number,
     default: 0
   }

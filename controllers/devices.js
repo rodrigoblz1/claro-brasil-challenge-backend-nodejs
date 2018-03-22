@@ -2,10 +2,10 @@
 
 const router = require('express').Router();
 
-const { DeviceModel, DeviceJoiSchema, DevicePutNameSchema } = require('../models/Device');
+const { DeviceModel, DeviceJoiSchema, DeviceIdNameSchema } = require('../models/Device');
 const UserModel = require('../models/User');
 
-const { Error, TypeError } = require('mongoose');
+const MongoError = require('mongoose').Error;
 
 // Couting days as seconds for TESTS purposes, COMMENT THAT OUT
 const day = 1000; // * 24 * 60 * 60
@@ -16,24 +16,26 @@ router.post('/', wrapAsync(async (req, res) => {
   let deviceJoi = await DeviceJoiSchema.validate(req.body);
   
   // Retrieves the user
-  let user = await usersController.getUserById(req.body.userId);
-
-  // Get all the user devices, sorted by olders first
-  let userDevices = await DeviceModel.find({userId: user.id}).sort({date_added: 1})
+  let user = await UserModel.findOne({id: deviceJoi.userId});
+  if (!user) {
+    // The system approuch needs a user stored to manage the device exchange dates
+    // So we abstract its registration and create one if it doesn't exist
+    user = await new UserModel({id: deviceJoi.userId}).save();
+  }
 
   // 30 days back from now
   let timestamp = new Date().getTime() - (30 * day);
 
   // User already have 3 devices
-  if (userDevices.length === 3) {
+  if (user.current_devices_amount === 3) {
     let message = 'You have reached the maximum of devices per account';
     // Checks if its last exchange was made before that
     if (!user.last_exchange || user.last_exchange < timestamp) {
       // In this case, the user cannot register a new device
-      message += '\nBut you can make an exchange (delete than add a new one)';
+      message += '. But you can make an exchange (delete than add a new one)';
     } else {
       let newExchangeDate = new Date(user.last_exchange.getTime() + (30 * day));
-      message += '\nYour next exchange will be available at ' + newExchangeDate;
+      message += '. Your next exchange will be available at ' + newExchangeDate;
     }
     return res.status(400).send({
       message: message 
@@ -44,15 +46,18 @@ router.post('/', wrapAsync(async (req, res) => {
   if (user.last_exchange > timestamp) {
     let newExchangeDate = new Date(user.last_exchange.getTime() + (30 * day));
     return res.status(400).send({
-      message: 'You can register a new device at ' + newExchangeDate
+      message: 'You can register a new device only after ' + newExchangeDate
     });
   }
 
   // This object will be used to modify the stored user, it will initially increment the total of devices
-  let userModifierObject = {total_registered: user.total_registered + 1};
+  let userModifierObject = {
+    total_devices_registered: user.total_devices_registered + 1,
+    current_devices_amount: user.current_devices_amount + 1,
+  };
 
   // The user is 'making an exchange' now
-  if (user.total_registered >= 3) {
+  if (user.total_devices_registered >= 3) {
     // Will set the new 'last_enchange' date to the modifier object
     userModifierObject.last_exchange = new Date();
   }
@@ -67,10 +72,10 @@ router.post('/', wrapAsync(async (req, res) => {
 }));
 
 router.put('/:id/:name', wrapAsync(async (req, res) => {
-  let deviceIdAndName = await DevicePutNameSchema.validate(req.params);
+  let deviceIdAndName = await DeviceIdNameSchema.validate(req.params);
   let device = await DeviceModel.findByIdAndUpdate(deviceIdAndName.id, {
     $set: {name: deviceIdAndName.name}
-  });
+  }, {new: true});
   if (!device) {
     return res.status(400).send({
       message: 'Device not found'
@@ -82,20 +87,32 @@ router.put('/:id/:name', wrapAsync(async (req, res) => {
   });
 }));
 
-// HELPER FUNCTIONS
-let getUserById = async (userId) => {
-  // Mocked part: The system approuch needs a user stored to manage the device exchange dates
-  // So we create one if it doesn't exist
-  try {
-    let user = await UserModel.findOne({id: userId});
-    if (!user) {
-      user = await new UserModel({id: userId}).save();
-    }
-    return user;
-  } catch (error) {
-    throw error;
+
+router.delete('/:id', wrapAsync(async (req, res) => {
+  let device = await DeviceModel.findById(req.params.id);
+  if (!device) {
+    return res.status(400).send({
+      message: 'Device not found'
+    });
   }
-}
+  let user = await UserModel.findOne({id: device.userId});
+  
+  // 30 days back from now
+  let timestamp = new Date().getTime() - (30 * day);
+  // Last user device and an exchange can't be made
+  if (user.current_devices_amount === 1 && user.last_exchange > timestamp) {
+    let newExchangeDate = new Date(user.last_exchange.getTime() + (30 * day));
+    return res.status(400).send({
+      message: 'You can\'t delete your last device because you will not be able to add a new one at the moment'
+      + '. You can register a new device only after ' + newExchangeDate
+    });
+  }
+  await user.update({$inc: {current_devices_amount: -1}});
+  await device.remove();
+  res.status(200).send({
+    message: 'Device ' + device.name + ' was removed successfully'
+  });
+}));
 
 // ERROR HANDLING
 function wrapAsync(fn) {
@@ -114,7 +131,7 @@ router.use(function handleJoiError(error, req, res, next) {
 });
 
 router.use(function handleDatabaseError(error, req, res, next) {
-  if (error instanceof Error || error instanceof TypeError) {
+  if (error instanceof MongoError) {
     return res.status(503).json({
       type: 'Database error',
       message: error.message
@@ -124,6 +141,7 @@ router.use(function handleDatabaseError(error, req, res, next) {
 });
 
 router.use(function generalErrors(error, req, res, next) {
+  console.log(error);
   return res.status(500).json({
     type: 'Server Error',
     message: 'Try again another time'
