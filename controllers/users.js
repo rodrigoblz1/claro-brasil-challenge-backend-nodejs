@@ -3,6 +3,7 @@
 const router = require('express').Router();
 
 const { DeviceModel } = require('../models/Device');
+const UserModel = require('../models/User');
 
 router.get('/:userId/devices/', async (req, res) => {
   try {
