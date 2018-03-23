@@ -1,11 +1,11 @@
 'use strict';
 
-const {app, logger} = require('./app');
-const config = require('./config');
+const app = require('./app');
 const port = process.env.PORT || 3000;
+const logger = require('./logger');
 
 // Database connection
-require('./db-connection')(logger, config);
+require('./db-connection')();
 
 const server = app.listen(port, function() {
   logger.info('Server listening on port ' + port);

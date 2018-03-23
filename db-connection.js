@@ -1,8 +1,10 @@
 'use strict';
 
+const logger = require('./logger');
+const config = require('./config');
 const mongoose = require('mongoose');
 
-module.exports = async (logger, config) => {
+module.exports = async () => {
   try {
     await mongoose.connect(config.database.uri, {
       keepAlive: true, 

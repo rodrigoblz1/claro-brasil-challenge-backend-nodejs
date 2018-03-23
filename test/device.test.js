@@ -7,7 +7,7 @@ const UserModel = require('../models/User');
 const request = require('supertest');
 const express = require('express');
 
-const {app} = require('../app');
+const app = require('../app');
 
 describe('Testing devices routes', () => {
   it('User 123 requests your first device registration', async () => {
@@ -49,7 +49,7 @@ describe('Testing devices routes', () => {
       console.log(err);
     })
 
-    let device = response1.body[0];
+    let device = response1.body.devices[0];
     let response2 = await request(app)
     .put('/devices/' + device._id + '/' + newDeviceName).expect('Content-Type', /json/)
     .expect(200)
@@ -171,7 +171,7 @@ describe('Testing devices routes', () => {
       console.log(err);
     })
 
-    let device1 = response.body[0];
+    let device1 = response.body.devices[0];
     await request(app)
     .delete('/devices/' + device1._id).expect('Content-Type', /json/)
     .expect(200)
@@ -224,14 +224,14 @@ describe('Testing devices routes', () => {
     })
 
     await request(app)
-    .delete('/devices/' + response.body[0]._id).expect('Content-Type', /json/)
+    .delete('/devices/' + response.body.devices[0]._id).expect('Content-Type', /json/)
     .expect(200)
     .catch(err => {
       console.log(err);
     })
 
     await request(app)
-    .delete('/devices/' + response.body[1]._id).expect('Content-Type', /json/)
+    .delete('/devices/' + response.body.devices[1]._id).expect('Content-Type', /json/)
     .expect(200)
     .catch(err => {
       console.log(err);
@@ -248,7 +248,7 @@ describe('Testing devices routes', () => {
       console.log(err);
     })
 
-    let device1 = response.body.pop();
+    let device1 = response.body.devices.pop();
     await request(app)
     .delete('/devices/' + device1._id).expect('Content-Type', /json/)
     .expect(400)
@@ -271,6 +271,15 @@ describe('Testing devices routes', () => {
     }
     let response = await request(app).post('/devices/').send(device).expect('Content-Type', /json/)
     .expect(400);
+  });
+
+  it('Tries to get devices of invalid user', async () => {
+    await request(app)
+    .get('/users/' + 'abc' + '/devices/').expect('Content-Type', /json/)
+    .expect(400)
+    .catch(err => {
+      console.log(err);
+    })
   });
 
   it('Tries to remove device with invalid id', async() => {

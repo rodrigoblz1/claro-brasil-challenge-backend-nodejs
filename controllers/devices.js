@@ -5,12 +5,46 @@ const router = require('express').Router();
 const { DeviceModel, DeviceJoiSchema, DeviceIdNameSchema } = require('../models/Device');
 const UserModel = require('../models/User');
 
-const MongoError = require('mongoose').Error;
-
 // Couting days as seconds for TESTS purposes, COMMENT THAT OUT
 const day = 1000; // * 24 * 60 * 60
 
-// CREATES A NEW DEVICE
+const MongoError = require('mongoose').Error;
+const logger = require('../logger');
+
+
+/**
+ * @api {post} /devices/ Registra um novo device
+ * @apiName RegisterDevice
+ * @apiGroup Device
+ * @apiVersion 0.0.1
+ * 
+ * @apiHeader Content-Type (application/json).
+ * @apiParam {String} userId Identificador do usuário que está registrando o novo device
+ * @apiParam {String} name Nome do dispositivo
+ * @apiParam {String} model Serão permitidos apenas "Android" ou "iOS" (Case insensitive)
+ * 
+ * @apiSuccess {String} message Informações referentes ao resultado da operação.
+ * @apiSuccess {Object} device Objeto que representa o novo device registrado
+ *
+ * @apiSuccessExample Success-Response:
+{
+    "message": "Device registered successfully",
+    "device": {
+        "_id": "5ab4f9e58ca814029f91da25",
+        "userId": "123",
+        "name": "iPhone de Rodrigo",
+        "model": "IOS",
+        "__v": 0
+    }
+}
+ * @apiError BadRequest A requisição não pode ser processada.
+ *
+ * @apiErrorExample Error-Response:
+ *  HTTP/1.1 400 Bad Request
+{
+    "message": "ValidationError: \"model\" with value \"Win Phone\" fails to match the required pattern: /^ANDROID|IOS$/"
+}
+ */
 router.post('/', wrapAsync(async (req, res) => {
   // Validates the whole body, if it matches the requirements 
   let deviceJoi = await DeviceJoiSchema.validate(req.body);
@@ -71,6 +105,34 @@ router.post('/', wrapAsync(async (req, res) => {
   });
 }));
 
+/**
+ * @api {put} /devices/:id/:name Atualiza o nome de um device pelo seu id
+ * @apiName UpdateDeviceName
+ * @apiGroup Device
+ * @apiVersion 0.0.1
+ * 
+ * @apiSuccess {String} message Informações referentes ao resultado da operação.
+ * @apiSuccess {Object} device Objeto que representa o device atualizado
+ *
+ * @apiSuccessExample Success-Response:
+{
+    "message": "Device updated successfully",
+    "device": {
+        "_id": "5ab467beeca66c249c53f52e",
+        "userId": "123",
+        "name": "Novo iPhone",
+        "model": "IOS",
+        "__v": 0
+    }
+}
+ * @apiError BadRequest A requisição não pode ser processada.
+ *
+ * @apiErrorExample Error-Response:
+ *  HTTP/1.1 400 Bad Request
+{
+    "message": "Device not found"
+}
+ */
 router.put('/:id/:name', wrapAsync(async (req, res) => {
   let deviceIdAndName = await DeviceIdNameSchema.validate(req.params);
   let device = await DeviceModel.findByIdAndUpdate(deviceIdAndName.id, {
@@ -87,7 +149,28 @@ router.put('/:id/:name', wrapAsync(async (req, res) => {
   });
 }));
 
-
+/**
+ * @api {delete} /devices/:id Deleta um device pelo seu id
+ * @apiName DeleteDevice
+ * @apiGroup Device
+ * @apiVersion 0.0.1
+ * 
+ * @apiSuccess {String} message Informações referentes ao resultado da operação.
+ * @apiSuccess {Object} device Objeto que representa o device atualizado
+ *
+ * @apiSuccessExample Success-Response:
+{
+    "message": "Device iPhone Novo was removed successfully"
+}
+ * @apiError BadRequest A requisição não pode ser processada.
+ *
+ * @apiErrorExample Error-Response:
+ *  HTTP/1.1 400 Bad Request
+{
+    "message": "You can't delete your last device because you will not be able to add a new one at the moment.
+    You can register a new device only after Fri Mar 23 2018 10:05:48 GMT-0300 (-03)"
+}
+ */
 router.delete('/:id', wrapAsync(async (req, res) => {
   let device = await DeviceModel.findById(req.params.id);
   if (!device) {
@@ -137,6 +220,7 @@ router.use(function handleDatabaseError(error, req, res, next) {
       message: error.message
     });
   }
+  logger.error(error);
   next(error);
 });
 

@@ -33,6 +33,20 @@
     "supertest": "^3.0.0"
   },
   "nyc": {
-    "exclude": ["./config", "**/*.test.js"]
+    "exclude": [
+      "./config",
+      "**/*.test.js"
+    ]
+  },
+  "apidoc": {
+    "title": "Claro Backend Challenge",
+    "url": "",
+    "order": [
+      "RegisterDevice",
+      "UpdateDeviceName",
+      "DeleteDevice",
+      "EditUser",
+      "GetDevices"
+    ]
   }
 }
