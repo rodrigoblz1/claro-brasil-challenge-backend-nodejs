@@ -140,12 +140,5 @@ router.use(function handleDatabaseError(error, req, res, next) {
   next(error);
 });
 
-router.use(function generalErrors(error, req, res, next) {
-  console.log(error);
-  return res.status(500).json({
-    type: 'Server Error',
-    message: 'Try again another time'
-  });
-});
 
 module.exports = router;

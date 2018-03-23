@@ -28,6 +28,16 @@ describe('Testing devices routes', () => {
     deviceRes.userId.should.eql(device.userId);
   });
 
+  it('User 123 fails to register new device with an invalid body', async () => {
+    // Missing 'model' and 'name', 'names' not allowed
+    let device = {
+      userId: '123',
+      names: 'iPhone Véi'
+    }
+    let response = await request(app).post('/devices/').send(device).expect('Content-Type', /json/)
+    .expect(400);
+  });
+
   it('User 123 edits a device name by id after getting the device list', async () => {
     let userId = '123';
     let newDeviceName = 'iPhone Novo';
@@ -50,6 +60,32 @@ describe('Testing devices routes', () => {
     let deviceRes = response2.body.device;
     deviceRes.name.should.eql(newDeviceName);
 
+  });
+
+  it('User 123 fails to edit device with an invalid id', async () => {
+    let userId = '123';
+    let newDeviceName = 'iPhone Mais Novo Ainda';
+
+    await request(app)
+    .put('/devices/' + '1oi2joads8d0' + '/' + newDeviceName).expect('Content-Type', /json/)
+    .expect(400)
+    .catch(err => {
+      console.log(err);
+    })
+
+    // The second one uses an valid id, but not stored in the database, giving another error
+    let newDevice = new DeviceModel({
+      userId: '123',
+      name: 'iPhone Véi',
+      model: 'iOS'
+    });
+
+    await request(app)
+    .put('/devices/' + newDevice._id + '/' + newDeviceName).expect('Content-Type', /json/)
+    .expect(400)
+    .catch(err => {
+      console.log(err);
+    })
   });
 
   it('User 456 register 3 devices', async () => {
@@ -166,6 +202,17 @@ describe('Testing devices routes', () => {
     })
   });
 
+  it('User 456 tries to register a new device with maximum reached and exchange available', async () => {
+    let userId = '456';
+    let device = {
+      userId: userId,
+      name: 'iPhone Véi',
+      model: 'iOS'
+    }
+    let response = await request(app).post('/devices/').send(device).expect('Content-Type', /json/)
+    .expect(400);
+  });
+
   it('User 456 gets list of devices and removes 2 more', async () => {
     let userId = '456';
 
@@ -213,6 +260,42 @@ describe('Testing devices routes', () => {
     let user = await UserModel.findOne({id:userId});
     should(user.total_devices_registered).eql(4);
     should(user.current_devices_amount).eql(1);
+  });
+
+  it('User 456 tries to register a new device but fails (exchange delay)', async () => {
+    let userId = '456';
+    let device = {
+      userId: userId,
+      name: 'iPhone Véi',
+      model: 'iOS'
+    }
+    let response = await request(app).post('/devices/').send(device).expect('Content-Type', /json/)
+    .expect(400);
+  });
+
+  it('Tries to remove device with invalid id', async() => {
+    // The first one uses an invalid id, generating a database error
+    let deviceId = '000';
+    await request(app)
+    .delete('/devices/' + deviceId).expect('Content-Type', /json/)
+    .expect(503)
+    .catch(err => {
+      console.log(err);
+    })
+
+    // The second one uses an valid id, but not stored in the database, giving another error
+    let newDevice = new DeviceModel({
+      userId: '123',
+      name: 'iPhone Véi',
+      model: 'iOS'
+    });
+
+    await request(app)
+    .delete('/devices/' + newDevice._id).expect('Content-Type', /json/)
+    .expect(400)
+    .catch(err => {
+      console.log(err);
+    })
   });
 
 })

@@ -4,7 +4,7 @@
   "description": "Claro BR Api challenge",
   "main": "server.js",
   "scripts": {
-    "test": "mocha"
+    "test": "nyc mocha"
   },
   "repository": {
     "type": "git",
@@ -28,7 +28,11 @@
   },
   "devDependencies": {
     "mocha": "^5.0.4",
+    "nyc": "^11.6.0",
     "should": "^13.2.1",
     "supertest": "^3.0.0"
+  },
+  "nyc": {
+    "exclude": ["./config", "**/*.test.js"]
   }
 }
