@@ -1,3 +1,5 @@
+GitHub Pages com a documentação das rotas: https://rodrigoblz1.github.io/claro-brasil-challenge-backend-nodejs/
+
 Claro Brasil Challenge - Node JS
 ===================
 
